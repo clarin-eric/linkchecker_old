@@ -1,4 +1,4 @@
-import eu.clarin.linkchecker.httpLinkChecker.HTTPLinkChecker;
+import eu.clarin.cmdi.linkchecker.httpLinkChecker.HTTPLinkChecker;
 import org.junit.Test;
 
 import java.net.URISyntaxException;

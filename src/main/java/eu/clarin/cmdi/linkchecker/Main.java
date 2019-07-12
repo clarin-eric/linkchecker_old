@@ -1,7 +1,7 @@
-package eu.clarin.linkchecker;
+package eu.clarin.cmdi.linkchecker;
 
-import eu.clarin.linkchecker.helpers.Configuration;
-import eu.clarin.linkchecker.threads.CollectionThreadManager;
+import eu.clarin.cmdi.linkchecker.threads.CollectionThreadManager;
+import eu.clarin.cmdi.linkchecker.helpers.Configuration;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

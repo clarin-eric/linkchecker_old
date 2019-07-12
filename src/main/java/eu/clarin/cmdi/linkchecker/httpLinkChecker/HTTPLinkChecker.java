@@ -1,7 +1,7 @@
-package eu.clarin.linkchecker.httpLinkChecker;
+package eu.clarin.cmdi.linkchecker.httpLinkChecker;
 
-import eu.clarin.linkchecker.helpers.Configuration;
-import eu.clarin.linkchecker.urlElements.URLElement;
+import eu.clarin.cmdi.linkchecker.helpers.Configuration;
+import eu.clarin.cmdi.rasa.links.CheckedLink;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -51,7 +51,7 @@ public class HTTPLinkChecker {
     }
 
     //this method checks link with HEAD, if it fails it calls a check link with GET method
-    public URLElement checkLink(String url, int redirectFollowLevel, long durationPassed, String originalURL) throws IOException, IllegalArgumentException {
+    public CheckedLink checkLink(String url, int redirectFollowLevel, long durationPassed, String originalURL) throws IOException, IllegalArgumentException {
         _logger.trace("Check link requested with url: " + url + " , redirectFollowLevel: " + redirectFollowLevel);
         if (url == null) {
             throw new IOException("The requested url is null.");
@@ -91,32 +91,32 @@ public class HTTPLinkChecker {
 
         int statusCode = response.getStatusLine().getStatusCode();
 
-        URLElement urlElement = new URLElement();
-        urlElement.setMethod("HEAD");
-        urlElement.setMessage("Ok");
-        urlElement.setUrl(originalURL);
-        urlElement.setStatus(statusCode);
+        CheckedLink checkedLink = new CheckedLink();
+        checkedLink.setMethod("HEAD");
+        checkedLink.setMessage("Ok");
+        checkedLink.setUrl(originalURL);
+        checkedLink.setStatus(statusCode);
 
         //deal with redirect
         if (redirectStatusCodes.contains(statusCode)) {
             if (redirectFollowLevel >= REDIRECT_FOLLOW_LIMIT) {
-                urlElement.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
+                checkedLink.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
             } else {
                 String redirectLink = response.getHeaders("Location")[0].getValue();
                 if (redirectLink != null) {
                     if (redirectLink.equals(url)) {
-                        urlElement.setMessage("Redirect link is the same");
+                        checkedLink.setMessage("Redirect link is the same");
                     } else {
                         try {
                             redirectLink = convertRelativeToAbsolute(url, redirectLink);
                             this.redirectLink = redirectLink;
                             return checkLink(redirectLink, redirectFollowLevel + 1, duration, originalURL);
                         } catch (URISyntaxException e) {
-                            urlElement.setMessage("Redirect link is malformed");
+                            checkedLink.setMessage("Redirect link is malformed");
                         }
                     }
                 } else {
-                    urlElement.setMessage("There is no redirect link('Location' header)");
+                    checkedLink.setMessage("There is no redirect link('Location' header)");
                 }
             }
         }
@@ -136,44 +136,44 @@ public class HTTPLinkChecker {
 
                 statusCode = response.getStatusLine().getStatusCode();
 
-                urlElement.setStatus(statusCode);
-                urlElement.setMethod("GET");
+                checkedLink.setStatus(statusCode);
+                checkedLink.setMethod("GET");
 
                 //deal with redirect
                 if (statusCode == 200 || statusCode == 304) {
-                    urlElement.setMessage("Ok");
-                    urlElement.setUrl(originalURL);
+                    checkedLink.setMessage("Ok");
+                    checkedLink.setUrl(originalURL);
                 } else if (redirectStatusCodes.contains(statusCode)) {
                     if (redirectFollowLevel >= REDIRECT_FOLLOW_LIMIT) {
-                        urlElement.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
-                        urlElement.setStatus(0);
+                        checkedLink.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
+                        checkedLink.setStatus(0);
                     } else {
                         String redirectLink = response.getHeaders("Location")[0].getValue();
                         if (redirectLink != null) {
                             if (redirectLink.equals(url)) {
-                                urlElement.setMessage("Redirect link is the same");
-                                urlElement.setStatus(0);
+                                checkedLink.setMessage("Redirect link is the same");
+                                checkedLink.setStatus(0);
                             } else {
                                 this.redirectLink = redirectLink;
                                 return checkLink(redirectLink, redirectFollowLevel + 1, duration, originalURL);
                             }
                         } else {
-                            urlElement.setMessage("There is no redirect link('Location' header)");
-                            urlElement.setStatus(0);
+                            checkedLink.setMessage("There is no redirect link('Location' header)");
+                            checkedLink.setStatus(0);
                         }
                     }
                 } else {
                     if (undeterminedStatusCodes.contains(statusCode)) {
-                        urlElement.setMessage("Undetermined");
+                        checkedLink.setMessage("Undetermined");
                     } else {
-                        urlElement.setMessage("Broken");
+                        checkedLink.setMessage("Broken");
                     }
 
                 }
 
             } else {
-                urlElement.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
-                urlElement.setStatus(0);
+                checkedLink.setMessage("Too Many Redirects(Limit:" + REDIRECT_FOLLOW_LIMIT + ")");
+                checkedLink.setStatus(0);
             }
         }
 
@@ -195,13 +195,13 @@ public class HTTPLinkChecker {
         }
 
 
-        urlElement.setContentType(contentType);
-        urlElement.setByteSize(contentLength);
-        urlElement.setDuration(duration);//dont forget to humanize to time
-        urlElement.setTimestamp(start);//dont forget to humanize to date
-        urlElement.setRedirectCount(redirectFollowLevel);
+        checkedLink.setContentType(contentType);
+        checkedLink.setByteSize(contentLength);
+        checkedLink.setDuration(duration);//dont forget to humanize to time
+        checkedLink.setTimestamp(start);//dont forget to humanize to date
+        checkedLink.setRedirectCount(redirectFollowLevel);
 
-        return urlElement;
+        return checkedLink;
     }
 
     public String convertRelativeToAbsolute(String url, String locationHeader) throws URISyntaxException {

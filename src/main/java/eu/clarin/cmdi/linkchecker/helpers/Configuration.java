@@ -1,8 +1,12 @@
-package eu.clarin.linkchecker.helpers;
+package eu.clarin.cmdi.linkchecker.helpers;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import eu.clarin.cmdi.rasa.helpers.RasaFactory;
+import eu.clarin.cmdi.rasa.helpers.impl.ACDHRasaFactory;
+import eu.clarin.cmdi.rasa.linkResources.CheckedLinkResource;
+import eu.clarin.cmdi.rasa.linkResources.LinkToBeCheckedResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +25,10 @@ public class Configuration {
     public static int REDIRECT_FOLLOW_LIMIT;
     public static String USERAGENT;
     public static long CRAWLDELAY;
-    public static boolean ONLY_BROKEN;
     public static Map<String, Long> CRAWLDELAYMAP = new HashMap<>();
 
-    public static MongoDatabase DATABASE;
+    public static CheckedLinkResource checkedLinkResource;
+    public static LinkToBeCheckedResource linkToBeCheckedResource;
 
     public static void loadConfigVariables(String configPath) {
         try {
@@ -39,7 +43,6 @@ public class Configuration {
         REDIRECT_FOLLOW_LIMIT = Integer.parseInt(properties.getProperty("REDIRECT_FOLLOW_LIMIT"));
         USERAGENT = properties.getProperty("USERAGENT");
         CRAWLDELAY = Long.parseLong(properties.getProperty("CRAWLDELAY"));
-        ONLY_BROKEN = Boolean.parseBoolean(properties.getProperty("ONLY_BROKEN"));
 
         String crawlDelayList = properties.getProperty("CRAWLDELAYLIST");
         for (String crawlDelayEntry : crawlDelayList.split(",")) {
@@ -48,25 +51,10 @@ public class Configuration {
             CRAWLDELAYMAP.put(collection, delay);
         }
 
-        connectDatabase(properties.getProperty("DATABASE_NAME"),properties.getProperty("DATABASE_URI"));
 
-    }
-
-    private static void connectDatabase(String databaseName, String databaseURI) {
-        _logger.info("Connecting to database...");
-
-        MongoClient mongoClient;
-        if (databaseURI.isEmpty()) {//if it is empty, try localhost
-            mongoClient = MongoClients.create();
-        } else {
-            mongoClient = MongoClients.create(databaseURI);
-        }
-
-        MongoDatabase database = mongoClient.getDatabase(databaseName);
-
-        _logger.info("Connected to database.");
-
-        DATABASE = database;
+        RasaFactory factory = new ACDHRasaFactory(properties.getProperty("DATABASE_NAME"),properties.getProperty("DATABASE_URI"));
+        checkedLinkResource = factory.getCheckedLinkResource();
+        linkToBeCheckedResource = factory.getLinkToBeCheckedResource();
 
     }
 

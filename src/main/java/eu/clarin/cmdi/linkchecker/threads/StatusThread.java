@@ -1,4 +1,4 @@
-package eu.clarin.linkchecker.threads;
+package eu.clarin.cmdi.linkchecker.threads;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
