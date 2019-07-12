@@ -135,11 +135,19 @@ public class CollectionThreadManager {
                 t = startCollectionThread(collection);
             }
 
+            int i = 0;
             for (LinkToBeChecked linkToBeChecked : linksToBeChecked.collect(Collectors.toList())) {
+
+                if (i % 10000 == 0) {
+                    _logger.info("Added " + i + " urls to collection thread: " + collection);
+                }
+
                 if (!t.urlQueue.contains(linkToBeChecked)) {
                     t.urlQueue.add(linkToBeChecked);
                     //_logger.info("Added url to collection thread: " + collection);
                 }
+
+                i++;
             }
 
         }
