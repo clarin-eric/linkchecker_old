@@ -1,8 +1,9 @@
 package eu.clarin.cmdi.linkchecker.threads;
 
 import eu.clarin.cmdi.linkchecker.helpers.Configuration;
-import eu.clarin.cmdi.rasa.helpers.impl.ACDHCheckedLinkFilter;
-import eu.clarin.cmdi.rasa.helpers.impl.ACDHLinkToBeCheckedFilter;
+
+import eu.clarin.cmdi.rasa.filters.impl.ACDHCheckedLinkFilter;
+import eu.clarin.cmdi.rasa.filters.impl.ACDHLinkToBeCheckedFilter;
 import eu.clarin.cmdi.rasa.links.CheckedLink;
 import eu.clarin.cmdi.rasa.links.LinkToBeChecked;
 import org.slf4j.Logger;
