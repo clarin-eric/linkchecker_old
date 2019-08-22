@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -46,7 +47,7 @@ public class CollectionThreadManager {
         Runnable threadRefiller = this::refillCollectionThreads;
 
         //every day at 1 am
-        long oneAM = LocalDateTime.now().until(LocalDate.now().atTime(1, 0), ChronoUnit.MINUTES);
+        long oneAM = LocalDateTime.now().until(LocalDate.now().plusDays(1).atTime(1, 0), ChronoUnit.MINUTES);
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(threadRefiller, oneAM, TimeUnit.DAYS.toMinutes(1), MINUTES);
 
@@ -127,29 +128,34 @@ public class CollectionThreadManager {
 
         for (String collection : collections) {
 
-            Stream<LinkToBeChecked> linksToBeChecked = linkToBeCheckedResource.get(Optional.of(new ACDHLinkToBeCheckedFilter(collection)));
+            List<LinkToBeChecked> linksToBeChecked = linkToBeCheckedResource.getList(Optional.of(new ACDHLinkToBeCheckedFilter(collection)));
 
-            CollectionThread t = getCollectionThreadByName(collection);
+            if(linksToBeChecked.size()>0){
 
-            //start new thread if it doesn't exist already
-            if (t == null) {
-                t = startCollectionThread(collection);
-            }
+                CollectionThread t = getCollectionThreadByName(collection);
 
-            int i = 0;
-            for (LinkToBeChecked linkToBeChecked : linksToBeChecked.collect(Collectors.toList())) {
-
-                if (i % 10000 == 0) {
-                    _logger.info("Added " + i + " urls to collection thread: " + collection);
+                //start new thread if it doesn't exist already
+                if (t == null) {
+                    t = startCollectionThread(collection);
                 }
 
-                if (!t.urlQueue.contains(linkToBeChecked)) {
-                    t.urlQueue.add(linkToBeChecked);
-                    //_logger.info("Added url to collection thread: " + collection);
-                }
+                int i = 0;
+                for (LinkToBeChecked linkToBeChecked : linksToBeChecked) {
 
-                i++;
+                    if (i % 10000 == 0) {
+                        _logger.info("Added " + i + " urls to collection thread: " + collection);
+                    }
+
+                    if (!t.urlQueue.contains(linkToBeChecked)) {
+                        t.urlQueue.add(linkToBeChecked);
+                        //_logger.info("Added url to collection thread: " + collection);
+                    }
+
+                    i++;
+                }
             }
+
+
 
         }
 
