@@ -35,8 +35,12 @@ public class Main {
         Configuration.loadConfigVariables(cmd.getOptionValue("config"));
 
         CollectionThreadManager manager = new CollectionThreadManager();
+        try {
+            manager.start();
+        } catch (Exception e) {
+            _logger.error("There has been an error and linkchecker is down. Here is the reason: ",e);
+        }
 
-        manager.start();
 
     }
 
